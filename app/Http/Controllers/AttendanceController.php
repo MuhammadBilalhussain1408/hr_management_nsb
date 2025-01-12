@@ -32,13 +32,13 @@ class AttendanceController extends Controller
 
     public function index(Request $request)
     {
-        $user = Auth::user('id', 'name','email');
+        $user = Auth::user('id', 'name', 'email');
         $userRole = $user->roles->pluck('name')->first();
         $org = $user->org->id;
-        $employee = Employee::where('email',$user->email)->select('id','email')->first();
+        $employee = Employee::where('email', $user->email)->select('id', 'email')->first();
         //dd($employee);
         //$today = date('Y-m-d');
-       // $r_day = date('Y-m-d', strtotime('+1 day', strtotime($today)));
+        // $r_day = date('Y-m-d', strtotime('+1 day', strtotime($today)));
         if (($userRole == 'Supper Admin') || ($userRole == 'Admin')) {
             $datas = Attendance::select(
                 'attendances.id',
@@ -55,10 +55,10 @@ class AttendanceController extends Controller
                 'departments.name as department_name',
                 'designations.name as designation_name'
             )
-            ->join('employees', 'attendances.employee_id', '=', 'employees.id')
-            ->join('departments', 'attendances.department_id', '=', 'departments.id')
-            ->join('designations', 'attendances.designation_id', '=', 'designations.id')
-            ->get();
+                ->join('employees', 'attendances.employee_id', '=', 'employees.id')
+                ->join('departments', 'attendances.department_id', '=', 'departments.id')
+                ->join('designations', 'attendances.designation_id', '=', 'designations.id')
+                ->get();
             $departments = Department::where('organization_id', $org)->select('id', 'name', 'status')->get();
         } else {
             $datas = Attendance::select(
@@ -76,14 +76,14 @@ class AttendanceController extends Controller
                 'departments.name as department_name',
                 'designations.name as designation_name'
             )
-            ->join('employees', 'attendances.employee_id', '=', 'employees.id')
-            ->join('departments', 'attendances.department_id', '=', 'departments.id')
-            ->join('designations', 'attendances.designation_id', '=', 'designations.id')
-            ->get();
+                ->join('employees', 'attendances.employee_id', '=', 'employees.id')
+                ->join('departments', 'attendances.department_id', '=', 'departments.id')
+                ->join('designations', 'attendances.designation_id', '=', 'designations.id')
+                ->get();
             $departments = Department::where('organization_id', $org)->select('id', 'name', 'status')->get();
         }
 
-        return view('hrm.attendances.index', compact('datas', 'departments','employee'));
+        return view('hrm.attendances.index', compact('datas', 'departments', 'employee'));
     }
     public function attendance_file_upload(Request $request)
     {
@@ -108,13 +108,13 @@ class AttendanceController extends Controller
                 'departments.name as department_name',
                 'designations.name as designation_name'
             )
-            ->join('employees', 'attendances.employee_id', '=', 'employees.id')
-            ->join('departments', 'attendances.department_id', '=', 'departments.id')
-            ->join('designations', 'attendances.designation_id', '=', 'designations.id')
-            ->where('attendances.date', '<=', $r_day)
-            ->where('attendances.date', '>=', $today)
-            ->get();
-        
+                ->join('employees', 'attendances.employee_id', '=', 'employees.id')
+                ->join('departments', 'attendances.department_id', '=', 'departments.id')
+                ->join('designations', 'attendances.designation_id', '=', 'designations.id')
+                ->where('attendances.date', '<=', $r_day)
+                ->where('attendances.date', '>=', $today)
+                ->get();
+
             $departments = Department::where('organization_id', $org)->select('id', 'name', 'status')->get();
         } else {
             $datas = Attendance::select(
@@ -132,12 +132,12 @@ class AttendanceController extends Controller
                 'departments.name as department_name',
                 'designations.name as designation_name'
             )
-            ->join('employees', 'attendances.employee_id', '=', 'employees.id')
-            ->join('departments', 'attendances.department_id', '=', 'departments.id')
-            ->join('designations', 'attendances.designation_id', '=', 'designations.id')
-            ->where('attendances.date', '<=', $r_day)
-            ->where('attendances.date', '>=', $today)
-            ->get();
+                ->join('employees', 'attendances.employee_id', '=', 'employees.id')
+                ->join('departments', 'attendances.department_id', '=', 'departments.id')
+                ->join('designations', 'attendances.designation_id', '=', 'designations.id')
+                ->where('attendances.date', '<=', $r_day)
+                ->where('attendances.date', '>=', $today)
+                ->get();
             $departments = Department::where('organization_id', $org)->select('id', 'name', 'status')->get();
         }
 
@@ -149,42 +149,40 @@ class AttendanceController extends Controller
             'file' => 'required',
         ]);
 
-        $upload=$request->file('file');
-        $filePath=$upload->getRealPath();
-        $file=fopen($filePath, 'r');
-        $header= fgetcsv($file);
-        $escapedHeader=[];
+        $upload = $request->file('file');
+        $filePath = $upload->getRealPath();
+        $file = fopen($filePath, 'r');
+        $header = fgetcsv($file);
+        $escapedHeader = [];
         //validate
         foreach ($header as $key => $value) {
-            $lheader=strtolower($value);
-            $escapedItem=preg_replace('/[^a-z]/', '', $lheader);
+            $lheader = strtolower($value);
+            $escapedItem = preg_replace('/[^a-z]/', '', $lheader);
             array_push($escapedHeader, $escapedItem);
         }
         //looping through othe columns
-        while($columns=fgetcsv($file))
-        {
-            if($columns[0]=="")
-            {
-              //  continue;
+        while ($columns = fgetcsv($file)) {
+            if ($columns[0] == "") {
+                //  continue;
             }
-            
+
             //trim data
             foreach ($columns as $key => &$value) {
                 // $value=preg_replace('/\D/','',$value);
             }
-            $data= array_combine($escapedHeader, $columns);
+            $data = array_combine($escapedHeader, $columns);
             // setting type
 
             foreach ($data as $key => &$value) {
                 $value = ($key == "id" || $key == "organizationid" || $key == "employeeid" || $key == "departmentid" || $key == "designationid" ||
-                $key == "checkedin" || $key == "checkedout" || $key == "date" || $key == "duration" || $key == "status" || $key == "checkedinloc" || $key == "checkedoutloc" || $key == "shiftid" ||
-                $key == "createdby") ? (string)$value : (string)$value;
+                    $key == "checkedin" || $key == "checkedout" || $key == "date" || $key == "duration" || $key == "status" || $key == "checkedinloc" || $key == "checkedoutloc" || $key == "shiftid" ||
+                    $key == "createdby") ? (string)$value : (string)$value;
             }
             // $id=$value['id'];
-          //  $date=$data['date'];
-            $organization_id=$data['organizationid'];
-            $employee_id=$data['employeeid'];
-          //  dd($date);
+            //  $date=$data['date'];
+            $organization_id = $data['organizationid'];
+            $employee_id = $data['employeeid'];
+            //  dd($date);
             $date = Carbon::parse($data['date']);
 
             $atten = new Attendance;
@@ -201,27 +199,25 @@ class AttendanceController extends Controller
             $atten->checked_out_loc = $data['checkedoutloc'];
             $atten->shift_id = $data['shiftid'];
             $atten->created_by = Auth::user()->id;
-           // dd($data);
+            // dd($data);
             $atten->save();
         }
-      
-        if($atten){
-            return redirect()->route('hrm.attendance_file_upload')
-            ->with('success', 'Attendance created successfully.');
-        }
-        else{
-            return redirect()->route('hrm.attendance_file_upload')
-        ->with('success', 'Nothing uploaded.'); 
-        }
 
-       
+        if ($atten) {
+            return redirect()->route('hrm.attendance_file_upload')
+                ->with('success', 'Attendance created successfully.');
+        } else {
+            return redirect()->route('hrm.attendance_file_upload')
+                ->with('success', 'Nothing uploaded.');
+        }
     }
-    public function Show(Request $request){
+    public function Show(Request $request)
+    {
 
-        $user = Auth::user('id', 'name','email');
+        $user = Auth::user('id', 'name', 'email');
         $userRole = $user->roles->pluck('name')->first();
         $org = $user->org->id;
-        $employee = Employee::where('email',$user->email)->select('id','email')->first();
+        $employee = Employee::where('email', $user->email)->select('id', 'email')->first();
         //dd($employee);
         $today = date('Y-m-d');
         $r_day = date('Y-m-d', strtotime('+1 day', strtotime($today)));
@@ -241,12 +237,12 @@ class AttendanceController extends Controller
                 'departments.name as department_name',
                 'designations.name as designation_name'
             )
-            ->join('employees', 'attendances.employee_id', '=', 'employees.id')
-            ->join('departments', 'attendances.department_id', '=', 'departments.id')
-            ->join('designations', 'attendances.designation_id', '=', 'designations.id')
-            ->where('attendances.date', '<=', $r_day)
-            ->where('attendances.date', '>=', $today)
-            ->get();
+                ->join('employees', 'attendances.employee_id', '=', 'employees.id')
+                ->join('departments', 'attendances.department_id', '=', 'departments.id')
+                ->join('designations', 'attendances.designation_id', '=', 'designations.id')
+                ->where('attendances.date', '<=', $r_day)
+                ->where('attendances.date', '>=', $today)
+                ->get();
             $departments = Department::where('organization_id', $org)->select('id', 'name', 'status')->get();
         } else {
             $datas = Attendance::select(
@@ -264,23 +260,21 @@ class AttendanceController extends Controller
                 'departments.name as department_name',
                 'designations.name as designation_name'
             )
-            ->join('employees', 'attendances.employee_id', '=', 'employees.id')
-            ->join('departments', 'attendances.department_id', '=', 'departments.id')
-            ->join('designations', 'attendances.designation_id', '=', 'designations.id')
-            ->where('attendances.date', '<=', $r_day)
-            ->where('attendances.date', '>=', $today)
-            ->get();
+                ->join('employees', 'attendances.employee_id', '=', 'employees.id')
+                ->join('departments', 'attendances.department_id', '=', 'departments.id')
+                ->join('designations', 'attendances.designation_id', '=', 'designations.id')
+                ->where('attendances.date', '<=', $r_day)
+                ->where('attendances.date', '>=', $today)
+                ->get();
             $departments = Department::where('organization_id', $org)->select('id', 'name', 'status')->get();
-            
         }
 
-        return view('hrm.attendances.index', compact('datas', 'departments','employee'));
-     
+        return view('hrm.attendances.index', compact('datas', 'departments', 'employee'));
     }
 
     public function attendance_daily(Request $request)
     {
-        $user = Auth::user('id', 'name','email');
+        $user = Auth::user('id', 'name', 'email');
         $userRole = $user->roles->pluck('name')->first();
         $org = $user->org->id;
         $dep_id = $request->department_id;
@@ -293,9 +287,9 @@ class AttendanceController extends Controller
             ->with('department')
             ->with('designation')
             ->first();
-        
+
         $r_day = date('Y-m-d', strtotime('+1 day', strtotime($from_date)));
-        
+
         if (($userRole == 'Supper Admin') || ($userRole == 'Admin')) {
             $datas = Attendance::where('department_id', $dep_id)
                 ->where('designation_id', $des_id)
@@ -303,7 +297,7 @@ class AttendanceController extends Controller
                 ->where('date', '<=', $today)
                 ->where('date', '>=', $r_day)
                 ->get();
-        
+
             $departments = Department::where('organization_id', $org)
                 ->select('id', 'name', 'status')
                 ->get();
@@ -313,7 +307,7 @@ class AttendanceController extends Controller
                 ->where('date', '<=', $today)
                 ->where('date', '>=', $r_day)
                 ->get();
-        
+
             $departments = Department::where('organization_id', $org)
                 ->select('id', 'name', 'status')
                 ->get();
@@ -323,22 +317,21 @@ class AttendanceController extends Controller
                 ->where('date', '<=', $today)
                 ->where('date', '>=', $r_day)
                 ->get();
-        
+
             $departments = Department::where('organization_id', $org)
                 ->select('id', 'name', 'status')
                 ->get();
         }
-        
+
         // Check if $datas is empty and set a message
         if ($datas->isEmpty()) {
             $noDataMessage = "No data available for the selected date range.";
         } else {
             $noDataMessage = null;
         }
-        
+
         // Pass the message to the view
         return view('hrm.attendances.daily', compact('datas', 'departments', 'employee', 'noDataMessage'));
-        
     }
 
     public function create(Request $request)
@@ -346,7 +339,7 @@ class AttendanceController extends Controller
         $user = Auth::user('id', 'name');
         $userRole = $user->roles->pluck('name')->first();
         $org = $user->org->id;
-       // dd($org);
+        // dd($org);
         if (($userRole == 'Supper Admin') || ($userRole == 'Admin')) {
             $orgs = Organization::select('id', 'company_name')->get();
             $departments = Department::where('organization_id', $org)->select('id', 'name', 'status')->get();
@@ -355,49 +348,49 @@ class AttendanceController extends Controller
             $departments = Department::where('organization_id', $org)->select('id', 'name', 'status')->get();
         }
         $emps = DB::table('employees')
-        ->join('departments', 'employees.department_id', '=', 'departments.id')
-        ->join('designations', 'employees.designation_id', '=', 'designations.id')
-        ->join('organizations', 'employees.organization_id', '=', 'organizations.id') // Joining organizations table
-        ->select(
-            'employees.id',
-            'employees.fname',
-            'employees.lname',
-            'departments.name as department_name',
-          
-            'designations.name as designation_name',
-            'organizations.company_name as organization_name',
-            'designations.id as designation_id',
-            'departments.id as department_id',
-            'organizations.id as org_id'
-        )
-        ->where('organizations.id',$org)
-        ->get();
+            ->join('departments', 'employees.department_id', '=', 'departments.id')
+            ->join('designations', 'employees.designation_id', '=', 'designations.id')
+            ->join('organizations', 'employees.organization_id', '=', 'organizations.id') // Joining organizations table
+            ->select(
+                'employees.id',
+                'employees.fname',
+                'employees.lname',
+                'departments.name as department_name',
+
+                'designations.name as designation_name',
+                'organizations.company_name as organization_name',
+                'designations.id as designation_id',
+                'departments.id as department_id',
+                'organizations.id as org_id'
+            )
+            ->where('organizations.id', $org)
+            ->get();
 
         // $emps= DB::select("
-                //      SELECT 
-                //         organizations.id AS organization_id,
-                //         organizations.company_name,
-                //         organizations.website,
-                //         organizations.phone AS org_phone,
-                //         departments.name AS department_name,
-                //         designations.name AS designation_name,
-                //         employees.id AS emp_id,
-                //         employees.fname ,
-                //         employees.lname ,
-                //         employees.email AS employee_email
-                //     FROM organizations
-                //     LEFT JOIN departments 
-                //         ON departments.organization_id = organizations.id
-                //     LEFT JOIN designations 
-                //         ON designations.department_id = departments.id
-                //     LEFT JOIN employees 
-                //         ON employees.department_id = departments.id 
-                //         AND employees.designation_id = designations.id
-                //     WHERE organizations.id= $org
-                // ");
+        //      SELECT
+        //         organizations.id AS organization_id,
+        //         organizations.company_name,
+        //         organizations.website,
+        //         organizations.phone AS org_phone,
+        //         departments.name AS department_name,
+        //         designations.name AS designation_name,
+        //         employees.id AS emp_id,
+        //         employees.fname ,
+        //         employees.lname ,
+        //         employees.email AS employee_email
+        //     FROM organizations
+        //     LEFT JOIN departments
+        //         ON departments.organization_id = organizations.id
+        //     LEFT JOIN designations
+        //         ON designations.department_id = departments.id
+        //     LEFT JOIN employees
+        //         ON employees.department_id = departments.id
+        //         AND employees.designation_id = designations.id
+        //     WHERE organizations.id= $org
+        // ");
 
-       // dd($emps);
-        return view('hrm.attendances.create', compact('departments', 'orgs','emps'));
+        // dd($emps);
+        return view('hrm.attendances.create', compact('departments', 'orgs', 'emps'));
     }
 
     public function store(Request $request)
@@ -408,16 +401,17 @@ class AttendanceController extends Controller
             'designation_id' => 'required|integer',
             'department_id' => 'required|integer',
             'org_id' => 'required|integer',
+            'attendance_status' => 'required',
             'type' => 'required|string|in:checkIn,checkOut', // Ensures only 'checkIn' or 'checkOut'
         ]);
-    
+
         // Retrieve today's attendance for the employee
         $attendance = Attendance::where('employee_id', $validatedData['employee_id'])
             ->whereDate('date', now()->toDateString()) // Check for the current date
             ->first();
 
-        
-    
+
+
         // If attendance for today doesn't exist, create a new record
         if (!$attendance) {
             $attendance = new Attendance();
@@ -425,54 +419,60 @@ class AttendanceController extends Controller
             $attendance->employee_id = $validatedData['employee_id'];
             $attendance->department_id = $validatedData['department_id'];
             $attendance->designation_id = $validatedData['designation_id'];
+            $attendance->attendance_status = $validatedData['attendance_status'];
             $attendance->date = now()->toDateString(); // Set today's date
             $attendance->created_by = auth()->id(); // Optional: Logged-in user
             $attendance->status = 'P'; // Default status
-           // Default status
-      
-    
+            // Default status
+
+
             // Handle check-in or check-out logic
             if ($validatedData['type'] === 'checkIn') {
-              
-                    $attendance->checked_in = now();
-                    // Save or update the attendance record
-                    $attendance->updated_by = auth()->id(); // Optional: Logged-in user
-                    $attendance->save();
-                
-                    // Return a success response
-                    return response()->json([
-                        'message' => 'Check-In marked successfully!',
-                        'attendance' => $attendance,
-                    ], 200);
-             
-            } 
-           
-         }
-         if($attendance){
-            if ($validatedData['type'] === 'checkOut') {
-                
-                    $attendance->checked_out = now();
-        
-                    // Calculate duration if check-in exists
-                    if ($attendance->checked_in) {
-                        $attendance->duration = now()->diffInMinutes($attendance->checked_in); // Duration in minutes
-                    }
-                    $attendance->updated_by = auth()->id(); // Optional: Logged-in user
-                    $attendance->save();
-                
-                    // Return a success response
-                    return response()->json([
-                        'message' => 'Check-Out marked successfully!',
-                        'attendance' => $attendance,
-                    ], 200);
-                
+
+                $attendance->checked_in = now();
+                // Save or update the attendance record
+                $attendance->updated_by = auth()->id(); // Optional: Logged-in user
+                $attendance->save();
+
+                // Return a success response
+                return response()->json([
+                    'message' => 'Check-In marked successfully!',
+                    'attendance' => $attendance,
+                ], 200);
             }
-         }
-      
+        }
+        if ($attendance) {
+            if ($validatedData['type'] === 'checkOut') {
+
+                $attendance->checked_out = now();
+
+                // Calculate duration if check-in exists
+                if ($attendance->checked_in) {
+                    $attendance->duration = now()->diffInMinutes($attendance->checked_in); // Duration in minutes
+                }
+                $attendance->updated_by = auth()->id(); // Optional: Logged-in user
+                $attendance->save();
+
+                // Return a success response
+                return response()->json([
+                    'message' => 'Check-Out marked successfully!',
+                    'attendance' => $attendance,
+                ], 200);
+            }else{
+                $attendance->attendance_status = $validatedData['attendance_status'];
+                $attendance->save();
+                return response()->json([
+                    'message' => 'Attendance Updated Successfully',
+                    'attendance' => $attendance,
+                ], 200);
+            }
+        }
+
     }
-    
-    public function bulk_attendance(Request $request){
-        $user = Auth::user('id', 'name','email');
+
+    public function bulk_attendance(Request $request)
+    {
+        $user = Auth::user('id', 'name', 'email');
         $userRole = $user->roles->pluck('name')->first();
         $org = $user->org->id;
         $dep_id = $request->department_id;
@@ -485,9 +485,9 @@ class AttendanceController extends Controller
             ->with('department')
             ->with('designation')
             ->first();
-        
+
         $r_day = date('Y-m-d', strtotime('+1 day', strtotime($from_date)));
-        
+
         if (($userRole == 'Supper Admin') || ($userRole == 'Admin')) {
             $datas = Attendance::where('department_id', $dep_id)
                 ->where('designation_id', $des_id)
@@ -495,7 +495,7 @@ class AttendanceController extends Controller
                 ->where('date', '<=', $today)
                 ->where('date', '>=', $r_day)
                 ->get();
-        
+
             $departments = Department::where('organization_id', $org)
                 ->select('id', 'name', 'status')
                 ->get();
@@ -505,7 +505,7 @@ class AttendanceController extends Controller
                 ->where('date', '<=', $today)
                 ->where('date', '>=', $r_day)
                 ->get();
-        
+
             $departments = Department::where('organization_id', $org)
                 ->select('id', 'name', 'status')
                 ->get();
@@ -515,19 +515,19 @@ class AttendanceController extends Controller
                 ->where('date', '<=', $today)
                 ->where('date', '>=', $r_day)
                 ->get();
-        
+
             $departments = Department::where('organization_id', $org)
                 ->select('id', 'name', 'status')
                 ->get();
         }
-        
+
         // Check if $datas is empty and set a message
         if ($datas->isEmpty()) {
             $noDataMessage = "No data available for the selected date range.";
         } else {
             $noDataMessage = null;
         }
-        
+
         // Pass the message to the view
         return view('hrm.attendances.addbulkattendance', compact('datas', 'departments', 'employee', 'noDataMessage'));
         //return view ('hrm.attendances.addbulkattendance', compact('departments', 'orgs','emps'));
@@ -543,9 +543,9 @@ class AttendanceController extends Controller
     //         'department_id' => 'required|integer',
     //         'org_id' => 'required|integer',
     //         'type' => 'required|string', // Ensures only 'checkIn' or 'checkOut'
-           
+
     //     ]);
-    
+
     //     // Retrieve today's attendance for the employee
     //     $attendance = Attendance::where('employee_id', $validatedData['employee_id'])
     //         ->whereDate('date', now()->toDateString()) // Check for the current date
@@ -568,7 +568,7 @@ class AttendanceController extends Controller
     //             $attendance->checked_in = now(); // Set check-in time
     //             $attendance->updated_by = auth()->id(); // Logged-in user
     //             $attendance->save(); // Save the record
-        
+
     //             // Return a success response
     //             return response()->json([
     //                 'message' => 'Check-In marked successfully!',
@@ -576,17 +576,17 @@ class AttendanceController extends Controller
     //             ], 200);
     //         }
     //     }
-        
+
     //     // Handle Check-Out
     //     if ($attendance->checked_in && !$attendance->checked_out) {
     //         if ($validatedData['type'] === 'checkOut') {
     //             $attendance->checked_out = now(); // Set check-out time
-        
+
     //             // Calculate duration (only if check-in exists)
     //             $attendance->duration = now()->diffInMinutes($attendance->checked_in); // Duration in minutes
     //             $attendance->updated_by = auth()->id(); // Logged-in user
     //             $attendance->save(); // Update the record
-        
+
     //             // Return a success response
     //             return response()->json([
     //                 'message' => 'Check-Out marked successfully!',
@@ -594,12 +594,12 @@ class AttendanceController extends Controller
     //             ], 200);
     //         }
     //     }
-        
+
     //     // If neither check-in nor check-out matches
     //     return response()->json([
     //         'message' => 'Invalid operation!',
     //     ], 400);
-        
+
 
     // }
 
@@ -631,7 +631,7 @@ class AttendanceController extends Controller
     //                 'message' => 'Error: ' . $e->getMessage()
     //             ]);
     //         }
-            
+
     //     //  dd($request);
     //     //     $user = Auth::user('id', 'name');
     //     //     $employee_id= $request['employee_id'];
@@ -719,17 +719,15 @@ class AttendanceController extends Controller
             $leave = LeaveAllocation::where('organization_id', $org)->where('employee_id', $employee_id)->where('effect_year', '<=', $to_date)->where('effect_year', '>=', $from_date)->get();
             $day_off = DayOff::where('organization_id', $org)->where('department_id', $dep_id)->where('designation_id', $des_id)->first();
             $holidays = Holiday::where('organization_id', $org)->where('to_date', '<=', $to_date)->where('from_date', '>=', $from_date)->get();
-
         } else {
             $shift = Shift::where('id', $shift_id)->select('id', 'in_time', 'out_time', 'shift_code')->first();
             $emp = Employee::where('organization_id', $org)->where('id', $employee_id)->select('id', 'fname', 'mid_name', 'lname', 'code', 'department_id', 'designation_id')->first();
             $leave = LeaveAllocation::where('organization_id', $org)->where('employee_id', $employee_id)->where('effect_year', '<=', $to_date)->where('effect_year', '>=', $from_date)->get();
             $day_off = DayOff::where('organization_id', $org)->where('department_id', $dep_id)->where('designation_id', $des_id)->first();
             $holidays = Holiday::where('organization_id', $org)->where('to_date', '<=', $to_date)->where('from_date', '>=', $from_date)->get();
-
         }
 
-        return view('hrm.attendances.search', compact('emp', 'from_date', 'to_date', 'shift', 'day_off', 'leave','holidays'));
+        return view('hrm.attendances.search', compact('emp', 'from_date', 'to_date', 'shift', 'day_off', 'leave', 'holidays'));
     }
     public function attendance_process(Request $request)
     {
@@ -739,7 +737,7 @@ class AttendanceController extends Controller
         $dep_id = $request->department_id;
         $des_id = $request->designation_id;
         $emp_id = $request->employee_id;
-       // $from_date = $request->from_date;
+        // $from_date = $request->from_date;
         //$today = $request->to_date;
         $from_date =   \Carbon\Carbon::parse($request->from_date);
         $today = \Carbon\Carbon::parse(date('Y-m-d'));
@@ -818,7 +816,7 @@ class AttendanceController extends Controller
                 $workingDayCount = '0';
             }
         }
-       // return $attend->pluck('checked_in')->count();
+        // return $attend->pluck('checked_in')->count();
         return view('hrm.attendances.process', compact('datas', 'attend', 'departments', 'leave', 'day_off', 'workingDayCount', 'from_date', 'to_date'));
     }
     public function attendance_report(Request $request)
@@ -836,7 +834,6 @@ class AttendanceController extends Controller
             $day_off = DayOff::where('organization_id', $org)->first();
             $leave = '';
             $holidays = Holiday::where('organization_id', $org)->where('to_date', '<=', $r_day)->where('from_date', '>=', $today)->get();
-
         } else {
             $datas = '';
             $departments = Department::where('organization_id', $org)->select('id', 'name', 'status')->get();
@@ -844,10 +841,9 @@ class AttendanceController extends Controller
             $day_off = DayOff::where('organization_id', $org)->first();
             $leave = '';
             $holidays = Holiday::where('organization_id', $org)->where('to_date', '<=', $r_day)->where('from_date', '>=', $today)->get();
-
         }
 
-        return view('hrm.attendances.report', compact('datas', 'departments', 'attend','day_off','year','leave','holidays'));
+        return view('hrm.attendances.report', compact('datas', 'departments', 'attend', 'day_off', 'year', 'leave', 'holidays'));
     }
 
     public function attendance_report_save(Request $request)
@@ -898,7 +894,7 @@ class AttendanceController extends Controller
             //     }
             // }
 
- 
+
             // return $workingDayCount;
 
 
@@ -924,11 +920,11 @@ class AttendanceController extends Controller
             // } else {
             //     $actual_time = '0';
             // }
-            return view('hrm.attendances.report', compact('datas', 'year', 'attend', 'departments', 'leave', 'day_off', 'year', 'to_date','holidays'));
+            return view('hrm.attendances.report', compact('datas', 'year', 'attend', 'departments', 'leave', 'day_off', 'year', 'to_date', 'holidays'));
         }
 
         // return $attend->pluck('checked_in')->count();
-        return view('hrm.attendances.report', compact('datas', 'attend', 'departments', 'leave', 'day_off', 'from_date', 'to_date','holidays'));
+        return view('hrm.attendances.report', compact('datas', 'attend', 'departments', 'leave', 'day_off', 'from_date', 'to_date', 'holidays'));
     }
     public function get_duration(Request $request, $checked_in_val, $checked_out_val)
     {
@@ -957,7 +953,7 @@ class AttendanceController extends Controller
     }
     public function attendance_emp_status(Request $request)
     {
-        $user = Auth::user('id', 'name','email');
+        $user = Auth::user('id', 'name', 'email');
         $userRole = $user->roles->pluck('name')->first();
         $org = $user->org->id;
         $org_user = $user->org->user_id;
@@ -972,17 +968,16 @@ class AttendanceController extends Controller
             $employee = Employee::where('email', $user->email)->first();
             $datas = Attendance::where('date', '<=', $r_day)->where('date', '>=', $today)->get();
             $departments = Department::where('organization_id', $org)->select('id', 'name', 'status')->get();
-            
-        }
-         else {
+        } else {
             $employee = Employee::where('organization_id', $org)->get();
             $departments = Department::where('organization_id', $org)->select('id', 'name', 'status')->get();
             $datas = Attendance::where('organization_id', $org)->where('date', '<=', $r_day)->where('date', '>=', $today)->get();
         }
 
-        return view('hrm.attendances.attendance_emp_status', compact('datas', 'departments','employee'));
+        return view('hrm.attendances.attendance_emp_status', compact('datas', 'departments', 'employee'));
     }
-    public function calenderatt(){
+    public function calenderatt()
+    {
         return view('hrm.attendances.calendaratt');
     }
     public function generateCalendar(Request $request, $code, $year)
