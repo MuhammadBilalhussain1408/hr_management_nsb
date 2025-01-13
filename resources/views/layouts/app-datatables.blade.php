@@ -63,7 +63,7 @@
     <script src="{{asset('assets/pages/jquery.table-datatable.js')}}"></script>
     <!-- App js -->
     <script src="{{asset('assets/js/app.js')}}"></script>
-    <!-- <script src="{{mix('js/app.js')}}"></script>-->
+    <script src="{{mix('js/app.js')}}"></script>
   
   <!-- FullCalendar CSS -->
 

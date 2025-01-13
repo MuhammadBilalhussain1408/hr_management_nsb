@@ -93,7 +93,7 @@
                                                 <td>{{ $emp->department_name }}</td> <!-- Department Name -->
                                                 <td>{{ $emp->designation_name }}</td> <!-- Designation -->
                                                 <td>
-                                                    {{ $attendance->attendance_status ?? 'N/A' }}
+                                                    {{ $attendance->status ?? 'N/A' }}
                                                 </td>
                                                 <td>
                                                     <button type="button" class="btn btn-primary" data-toggle="modal"
@@ -293,6 +293,10 @@
                         //alert('Attendance marked successfully!');
                         // Disable the checkbox after marking attendance
                         $(`input[data-emp-id='${empId}'][name='${type}']`).prop('disabled', true);
+                        $('#attendanceModal').modal('hide');
+
+                // Reload the window
+                location.reload();
                     },
                     error: function(xhr) {
                         console.error(xhr.responseText);

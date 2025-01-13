@@ -419,10 +419,10 @@ class AttendanceController extends Controller
             $attendance->employee_id = $validatedData['employee_id'];
             $attendance->department_id = $validatedData['department_id'];
             $attendance->designation_id = $validatedData['designation_id'];
-            $attendance->attendance_status = $validatedData['attendance_status'];
+            $attendance->status = $validatedData['attendance_status'];
             $attendance->date = now()->toDateString(); // Set today's date
             $attendance->created_by = auth()->id(); // Optional: Logged-in user
-            $attendance->status = 'P'; // Default status
+            //$attendance->status = 'P'; // Default status
             // Default status
 
 
@@ -459,7 +459,7 @@ class AttendanceController extends Controller
                     'attendance' => $attendance,
                 ], 200);
             }else{
-                $attendance->attendance_status = $validatedData['attendance_status'];
+                $attendance->status = $validatedData['attendance_status'];
                 $attendance->save();
                 return response()->json([
                     'message' => 'Attendance Updated Successfully',
