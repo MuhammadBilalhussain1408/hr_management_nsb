@@ -470,66 +470,41 @@ class AttendanceController extends Controller
 
     }
 
-    public function bulk_attendance(Request $request)
+    public function bulk_attendance()
     {
-        $user = Auth::user('id', 'name', 'email');
-        $userRole = $user->roles->pluck('name')->first();
-        $org = $user->org->id;
-        $dep_id = $request->department_id;
-        $des_id = $request->designation_id;
-        $emp_id = $request->employee_id;
-        $from_date = $request->from_date;
-        $today = $request->to_date;
-        $employee = Employee::where('id', $emp_id)
-            ->select('id', 'fname', 'mid_name', 'lname', 'code', 'designation_id', 'department_id')
-            ->with('department')
-            ->with('designation')
-            ->first();
+        // dd(request());
+        // $user = Auth::user('id', 'name');
+        // $userRole = $user->roles->pluck('name')->first();
+        // $org = $user->org->id;
+        // // dd($org);
+        // if (($userRole == 'Supper Admin') || ($userRole == 'Admin')) {
+        //     $orgs = Organization::select('id', 'company_name')->get();
+        //     $departments = Department::where('organization_id', $org)->select('id', 'name', 'status')->get();
+        // } else {
+        //     $orgs = Organization::where('id', $org)->select('id', 'company_name')->get();
+        //     $departments = Department::where('organization_id', $org)->select('id', 'name', 'status')->get();
+        // }
+        // $emps = DB::table('employees')
+        // ->join('departments', 'employees.department_id', '=', 'departments.id')
+        // ->join('designations', 'employees.designation_id', '=', 'designations.id')
+        // ->join('organizations', 'employees.organization_id', '=', 'organizations.id') // Joining organizations table
+        // ->select(
+        //     'employees.id',
+        //     'employees.fname',
+        //     'employees.lname',
+        //     'departments.name as department_name',
 
-        $r_day = date('Y-m-d', strtotime('+1 day', strtotime($from_date)));
-
-        if (($userRole == 'Supper Admin') || ($userRole == 'Admin')) {
-            $datas = Attendance::where('department_id', $dep_id)
-                ->where('designation_id', $des_id)
-                ->where('employee_id', $emp_id)
-                ->where('date', '<=', $today)
-                ->where('date', '>=', $r_day)
-                ->get();
-
-            $departments = Department::where('organization_id', $org)
-                ->select('id', 'name', 'status')
-                ->get();
-        } else if ($userRole == 'Employee') {
-            $datas = Attendance::where('organization_id', $org)
-                ->where('employee_id', $emp_id)
-                ->where('date', '<=', $today)
-                ->where('date', '>=', $r_day)
-                ->get();
-
-            $departments = Department::where('organization_id', $org)
-                ->select('id', 'name', 'status')
-                ->get();
-        } else {
-            $datas = Attendance::where('organization_id', $org)
-                ->where('employee_id', $emp_id)
-                ->where('date', '<=', $today)
-                ->where('date', '>=', $r_day)
-                ->get();
-
-            $departments = Department::where('organization_id', $org)
-                ->select('id', 'name', 'status')
-                ->get();
-        }
-
-        // Check if $datas is empty and set a message
-        if ($datas->isEmpty()) {
-            $noDataMessage = "No data available for the selected date range.";
-        } else {
-            $noDataMessage = null;
-        }
-
+        //     'designations.name as designation_name',
+        //     'organizations.company_name as organization_name',
+        //     'designations.id as designation_id',
+        //     'departments.id as department_id',
+        //     'organizations.id as org_id'
+        // )
+        // ->where('organizations.id', $org)
+        // ->get();
+        $employees = Employee::all();
         // Pass the message to the view
-        return view('hrm.attendances.addbulkattendance', compact('datas', 'departments', 'employee', 'noDataMessage'));
+        return view('hrm.attendances.addbulkattendance', compact('employees'));
         //return view ('hrm.attendances.addbulkattendance', compact('departments', 'orgs','emps'));
 
     }

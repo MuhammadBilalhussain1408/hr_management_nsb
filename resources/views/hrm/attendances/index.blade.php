@@ -116,7 +116,7 @@
                                         <td>{{ $in->diffAsCarbonInterval($out)->hours }} </td>
                                         <td>{{ $data->status }}</td>
                                     </tr>
-                                  
+
                                     @endforeach
                                 </tbody>
                             </table>
@@ -152,7 +152,7 @@
                 }
             });
         }
-     
+
         function chngdesignation(empid) {
             var dep_id = $("#department_id option:selected").val();
 

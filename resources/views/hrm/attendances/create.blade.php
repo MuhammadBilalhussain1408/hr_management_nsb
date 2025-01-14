@@ -71,6 +71,9 @@
                                             <th>Department</th>
                                             <th>Designation</th>
                                             <th class="dt-no-sorting">Status</th>
+                                            <th class="dt-no-sorting">CheckIn</th>
+                                            <th class="dt-no-sorting">Checkout</th>
+                                            <th class="dt-no-sorting">Duration</th>
                                             <th class="dt-no-sorting">Mark Attendance</th>
                                         </tr>
                                     </thead>
@@ -94,6 +97,15 @@
                                                 <td>{{ $emp->designation_name }}</td> <!-- Designation -->
                                                 <td>
                                                     {{ $attendance->status ?? 'N/A' }}
+                                                </td>
+                                                <td>
+                                                    {{ $attendance ? $attendance->created_at->format('H:i') : 'N/A' }}
+                                                </td>
+                                                <td>
+                                                    {{ $attendance ? $attendance->updated_at->format('H:i') : 'N/A' }}
+                                                </td>
+                                                <td>
+                                                    {{ $attendance ? $attendance->created_at->diffInMinutes($attendance->updated_at) : 'N/A' }}
                                                 </td>
                                                 <td>
                                                     <button type="button" class="btn btn-primary" data-toggle="modal"
@@ -171,106 +183,150 @@
             @endcan
             @include('layouts.footer')
         </div><!-- end page content -->
-
-        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-        <script>
-            function checkAttendanceStatus(){
-                let status = $('#attendance_status option:selected').val();
-                if(status =='Absent' || status =='Leave'){
-                    $('#checkInBox').attr('disabled', true);
-                    $('#checkOutBox').attr('disabled', true);
-                }else{
-                    $('#checkInBox').attr('disabled', false);
-                    $('#checkOutBox').attr('disabled', false);
-                }
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function checkAttendanceStatus() {
+            let status = $('#attendance_status option:selected').val();
+            if (status == 'Absent' || status == 'Leave') {
+                $('#checkInBox').attr('disabled', true);
+                $('#checkOutBox').attr('disabled', true);
+            } else {
+                $('#checkInBox').attr('disabled', false);
+                $('#checkOutBox').attr('disabled', false);
             }
-            let selectedRow = null;
+        }
+        let selectedRow = null;
 
-            function markAttendanceModal(data, disableCheckIn, disableCheckOut, attandence_status) {
-                console.log(data,attandence_status);
+        function markAttendanceModal(data, disableCheckIn, disableCheckOut, attandence_status) {
+            console.log(data, attandence_status);
 
-                selectedRow = data;
-                if (attandence_status.trim()) {
-                    $(`#attendance_status option[value="${attandence_status}"]`).prop('selected', true);
-                }
-                if (disableCheckIn) {
-                    $('#checkInBox').attr('checked', true).attr('disabled', true);
-                }
-                if (!disableCheckIn && !disableCheckOut) {
-                    $('#checkOutBox').attr('disabled', true);
-                }
-                if (disableCheckOut) {
-                    $('#checkOutBox').attr('checked', true).attr('disabled', true);
-                }
+            selectedRow = data;
+            if (attandence_status.trim()) {
+                $(`#attendance_status option[value="${attandence_status}"]`).prop('selected', true);
             }
-            $(document).ready(function() {
-                $('#employee_id').select2({
-                    placeholder: "Select an Employee", // Placeholder text
-                    allowClear: true, // Allow clearing the selection
-                });
-                changeEmp();
+            if (disableCheckIn) {
+                $('#checkInBox').attr('checked', true).attr('disabled', true);
+            }
+            if (!disableCheckIn && !disableCheckOut) {
+                $('#checkOutBox').attr('disabled', true);
+            }
+            if (disableCheckOut) {
+                $('#checkOutBox').attr('checked', true).attr('disabled', true);
+            }
+        }
+        $(document).ready(function() {
+            $('#employee_id').select2({
+                placeholder: "Select an Employee", // Placeholder text
+                allowClear: true, // Allow clearing the selection
             });
+            changeEmp();
+        });
 
-            function changeEmp() {
-                $.ajax({
-                    type: 'GET',
-                    url: '/hrm/get_employee',
-                    cache: false,
-                    success: function(response) {
-                        // Uncomment for debugging purposes
-                        // console.log(response);
-                        var obj_data = jQuery.parseJSON(response);
+        function changeEmp() {
+            $.ajax({
+                type: 'GET',
+                url: '/hrm/get_employee',
+                cache: false,
+                success: function(response) {
+                    // Uncomment for debugging purposes
+                    // console.log(response);
+                    var obj_data = jQuery.parseJSON(response);
 
-                        var output = '';
-                        output += '<option value="" > Select Employee </option>';
-                        $.each(obj_data, function(i, data) {
-                            output += '<option value="' + data.id + '"> ' + data.fname + ' ' + data
-                                .mid_name + ' ' + data.lname + ' (' + data.code + ') </option>';
-                        });
-                        $('#employee_id').html(output);
-                    }
-                });
-            }
-        </script>
-        <script>
-            function updateDateTime() {
-                // Get current date and time
-                const now = new Date();
-                const yyyy = now.getFullYear();
-                const mm = String(now.getMonth() + 1).padStart(2, '0'); // Add leading zero
-                const dd = String(now.getDate()).padStart(2, '0'); // Add leading zero
-                const hours = String(now.getHours()).padStart(2, '0'); // Add leading zero
-                const minutes = String(now.getMinutes()).padStart(2, '0'); // Add leading zero
-                const seconds = String(now.getSeconds()).padStart(2, '0'); // Add leading zero
-
-                // Format the date and time as 'YYYY-MM-DD HH:MM:SS'
-                const formattedDateTime = `${yyyy}-${mm}-${dd} ${hours}:${minutes}:${seconds}`;
-
-                // Display it in the div
-                document.getElementById('dateTimeDisplay').textContent = formattedDateTime;
-            }
-
-            // Update the date and time every second
-            setInterval(updateDateTime, 1000);
-
-            // Call it once immediately to show the date and time without waiting for the interval
-            updateDateTime();
-        </script>
-        <script>
-            function MarkCheckInCheckOut() {
-                let checkType = $('.attendanceBox:checked').val();
-                if (!checkType.trim()) {
-                    alert('Please Select Checkout Type');
-                    return false;
+                    var output = '';
+                    output += '<option value="" > Select Employee </option>';
+                    $.each(obj_data, function(i, data) {
+                        output += '<option value="' + data.id + '"> ' + data.fname + ' ' + data
+                            .mid_name + ' ' + data.lname + ' (' + data.code + ') </option>';
+                    });
+                    $('#employee_id').html(output);
                 }
-                const empId = selectedRow.id;
-                const designationId = selectedRow.designation_id;
-                const departmentId = selectedRow.department_id;
-                const orgId = selectedRow.org_id;
-                const type = checkType;
+            });
+        }
+    </script>
+    <script>
+        function updateDateTime() {
+            // Get current date and time
+            const now = new Date();
+            const yyyy = now.getFullYear();
+            const mm = String(now.getMonth() + 1).padStart(2, '0'); // Add leading zero
+            const dd = String(now.getDate()).padStart(2, '0'); // Add leading zero
+            const hours = String(now.getHours()).padStart(2, '0'); // Add leading zero
+            const minutes = String(now.getMinutes()).padStart(2, '0'); // Add leading zero
+            const seconds = String(now.getSeconds()).padStart(2, '0'); // Add leading zero
 
-                console.log(empId, designationId, departmentId, orgId, type);
+            // Format the date and time as 'YYYY-MM-DD HH:MM:SS'
+            const formattedDateTime = `${yyyy}-${mm}-${dd} ${hours}:${minutes}:${seconds}`;
 
+            // Display it in the div
+            document.getElementById('dateTimeDisplay').textContent = formattedDateTime;
+        }
+
+        // Update the date and time every second
+        setInterval(updateDateTime, 1000);
+
+        // Call it once immediately to show the date and time without waiting for the interval
+        updateDateTime();
+    </script>
+    <script>
+        function MarkCheckInCheckOut() {
+            let checkType = $('.attendanceBox:checked').val();
+            if (!checkType.trim()) {
+                alert('Please Select Checkout Type');
+                return false;
+            }
+            const empId = selectedRow.id;
+            const designationId = selectedRow.designation_id;
+            const departmentId = selectedRow.department_id;
+            const orgId = selectedRow.org_id;
+            const type = checkType;
+
+            console.log(empId, designationId, departmentId, orgId, type);
+
+            $.ajax({
+                url: "{{ route('hrm.attendances.store') }}", // Laravel route
+                type: "POST",
+                data: {
+                    _token: "{{ csrf_token() }}", // CSRF token
+                    employee_id: empId,
+                    designation_id: designationId,
+                    department_id: departmentId,
+                    org_id: orgId,
+                    type: type,
+                    attendance_status: $('#attendance_status option:selected').val()
+                },
+                success: function(response) {
+                    console.log(response);
+
+                    if (response && response.message) {
+                        // Show the message from the response in the alert
+                        alert(response.message);
+                    }
+                    //alert('Attendance marked successfully!');
+                    // Disable the checkbox after marking attendance
+                    $(`input[data-emp-id='${empId}'][name='${type}']`).prop('disabled', true);
+                    $('#attendanceModal').modal('hide');
+
+                    // Reload the window
+                    location.reload();
+                },
+                error: function(xhr) {
+                    console.error(xhr.responseText);
+                    alert('An error occurred while marking attendance.');
+                }
+            });
+        }
+
+        $(document).on('change', '.checkOut', function() {
+            if ($(this).is(':checked')) {
+                // Get the data attributes
+                const empId = $(this).data('emp-id');
+                const designationId = $(this).data('designation-id');
+                const departmentId = $(this).data('department-id');
+                const orgId = $(this).data('org-id');
+                const type = $(this).attr('name'); // Check-In or Check-Out
+                //  alert(type);
+                // Send AJAX request
                 $.ajax({
                     url: "{{ route('hrm.attendances.store') }}", // Laravel route
                     type: "POST",
@@ -280,12 +336,9 @@
                         designation_id: designationId,
                         department_id: departmentId,
                         org_id: orgId,
-                        type: type,
-                        attendance_status: $('#attendance_status option:selected').val()
+                        type: type // Check-In or Check-Out
                     },
                     success: function(response) {
-                        console.log(response);
-
                         if (response && response.message) {
                             // Show the message from the response in the alert
                             alert(response.message);
@@ -293,10 +346,6 @@
                         //alert('Attendance marked successfully!');
                         // Disable the checkbox after marking attendance
                         $(`input[data-emp-id='${empId}'][name='${type}']`).prop('disabled', true);
-                        $('#attendanceModal').modal('hide');
-
-                // Reload the window
-                location.reload();
                     },
                     error: function(xhr) {
                         console.error(xhr.responseText);
@@ -304,43 +353,6 @@
                     }
                 });
             }
-
-            $(document).on('change', '.checkOut', function() {
-                if ($(this).is(':checked')) {
-                    // Get the data attributes
-                    const empId = $(this).data('emp-id');
-                    const designationId = $(this).data('designation-id');
-                    const departmentId = $(this).data('department-id');
-                    const orgId = $(this).data('org-id');
-                    const type = $(this).attr('name'); // Check-In or Check-Out
-                    //  alert(type);
-                    // Send AJAX request
-                    $.ajax({
-                        url: "{{ route('hrm.attendances.store') }}", // Laravel route
-                        type: "POST",
-                        data: {
-                            _token: "{{ csrf_token() }}", // CSRF token
-                            employee_id: empId,
-                            designation_id: designationId,
-                            department_id: departmentId,
-                            org_id: orgId,
-                            type: type // Check-In or Check-Out
-                        },
-                        success: function(response) {
-                            if (response && response.message) {
-                                // Show the message from the response in the alert
-                                alert(response.message);
-                            }
-                            //alert('Attendance marked successfully!');
-                            // Disable the checkbox after marking attendance
-                            $(`input[data-emp-id='${empId}'][name='${type}']`).prop('disabled', true);
-                        },
-                        error: function(xhr) {
-                            console.error(xhr.responseText);
-                            alert('An error occurred while marking attendance.');
-                        }
-                    });
-                }
-            });
-        </script>
-    @endsection
+        });
+    </script>
+@endsection

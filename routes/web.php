@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 
-  
+
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\RoleController;
@@ -64,7 +64,7 @@ use App\Http\Controllers\InvoiceController;
 Route::get('/key', function(){
     \Artisan::call('storage:link');
 
-}); 
+});
 Route::get('/unzip', [WelcomeController::class, 'index'])->name('index');
 
 Route::get('/', [WelcomeController::class, 'index'])->name('index');
@@ -87,7 +87,7 @@ Auth::routes();
 
 
 // Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
-  
+
 Route::get('/hrm/home', [HomeController::class, 'index'])->name('home');
 Route::group(['middleware' => ['auth'], 'prefix' => 'hrm', 'as' => 'hrm.'], function () {
 // Route::group(['middleware' => ['auth']], function() {
@@ -123,7 +123,7 @@ Route::group(['middleware' => ['auth'], 'prefix' => 'hrm', 'as' => 'hrm.'], func
     Route::get( '/get_emp_doc/{empid}/{val}', [EmployeeController::class, 'get_emp_doc'] )->name('get_emp_doc');
     Route::get('/get_employee', [EmployeeController::class, 'get_employee'] )->name('get_employee');
 
-    
+
     Route::resource('right_works', RightWorkController::class);
     Route::get( '/rightwork_excel/{id}', [RightWorkController::class, 'rightwork_excel'] )->name('rightwork_excel');
 
@@ -158,7 +158,7 @@ Route::group(['middleware' => ['auth'], 'prefix' => 'hrm', 'as' => 'hrm.'], func
 
     Route::get( '/job_code/{empid}', [JobPostController::class, 'job_code'] )->name('job_code');
     Route::get( '/job_empid/{empid}/{soc}', [JobPostController::class, 'job_empid'] )->name('job_empid');
-  
+
     Route::resource('holiday_types', HolidayTypeController::class);
     Route::resource('holidays', HolidayController::class);
 
@@ -187,8 +187,8 @@ Route::group(['middleware' => ['auth'], 'prefix' => 'hrm', 'as' => 'hrm.'], func
    // Route::get('/attendances/daily', [AttendanceController::class, 'ShowDailyAtt'])->name('attendances.daily');
     Route::get('/attendances/allreport', [AttendanceController::class, 'index'] )->name('attendances.index');
     Route::get('/attendances/daily', [AttendanceController::class, 'attendance_daily'] )->name('attendances.daily');
-    Route::get('/attendances/bulk_attendance', [AttendanceController::class, 'bulk_attendance'] )->name('attendances.bulk_attendance');
-    
+    Route::get('/attendances-bulk_attendance', [AttendanceController::class, 'bulk_attendance'] )->name('attendances.bulk_attendance');
+
     Route::post('/attendances/store', [AttendanceController::class, 'store'])->name('attendances.store');
 
     //Route::get('/attendances/calenderatt', [AttendanceController::class, 'calenderatt'] )->name('attendances.calenderatt');
