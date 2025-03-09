@@ -5,10 +5,152 @@
     <link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
 
     <!-- jQuery (if you haven't already included it) -->
+    <style>
+            /* Fullscreen Modal Styling */
+            .modal-fullscreen {
+                width: 100vw;
+                height: 100vh;
+                margin: 0;
+                padding: 0;
+            }
+
+            .modal-fullscreen .modal-content {
+                height: 100vh;
+                border-radius: 10px;
+                box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+                background: #ffffff;
+                border: none;
+            }
+
+            /* Modal Header */
+            .modal-header {
+                background: #007bff;
+                color:rgb(12, 2, 2);
+                border-radius: 10px 10px 0 0;
+            }
+
+            /* Close Button */
+            .modal-header .close {
+                color:rgb(14, 4, 4);
+                font-size: 24px;
+                opacity: 1;
+            }
+
+            .modal-header .close:hover {
+                color:rgb(12, 1, 1);
+            }
+
+            /* FullCalendar Styling */
+            #calendar {
+                padding: 20px;
+                background:rgb(141, 187, 233);
+                border-radius: 10px;
+                box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.1);
+            }
+
+            /* Calendar Header Styling */
+            .fc-toolbar-title {
+                font-size: 22px !important;
+                font-weight: bold;
+                color: #007bff;
+            }
+
+            .fc-col-header-cell {
+            background: #007bff !important;  /* Blue background for header */
+            color: #ffffff !important;  /* White text for contrast */
+            font-weight: bold;
+            padding: 10px;
+            text-transform: uppercase;
+            border: 1px solid #ddd;
+        }
+
+        /* Fix Calendar Date Text */
+        .fc-daygrid-day-number {
+            color: #333 !important; /* Dark text color for better visibility */
+            font-weight: bold;
+        }
+
+        /* Optional: Style Weekend Days */
+        .fc-day-sat, .fc-day-sun {
+            background:rgb(170, 84, 84) !important; /* Light gray background for weekends */
+        }
+
+        /* Hover Effect for Dates */
+        .fc-daygrid-day:hover {
+            background: #e3f2fd !important; /* Light blue highlight on hover */
+            transition: 0.3s ease-in-out;
+        }
+    </style>
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <!-- Select2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
+
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js'></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('calendar');
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            initialDate: new Date(),
+            headerToolbar: {
+                left: 'prev next today',
+                center: 'title',
+                right: 'dayGridMonth'
+            },
+            height: 'auto',
+            events: [] // Initially empty, filled dynamically via AJAX
+        });
+
+        $('#attandanceModal').on('shown.bs.modal', function () {
+            calendar.render();
+        });
+
+        window.calendar = calendar; // Make the calendar instance accessible globally
+    });
+
+    function markAttendanceModal(data) {
+        var id = data['id'];
+
+        $.ajax({
+            url: '/hrm/get_emp_attendance/' + id,
+            type: 'GET',
+            data: { id: id },
+            success: function(response) {
+                console.log('Success:', response);
+
+                window.calendar.removeAllEvents(); // Clear existing events
+
+                var events = response.map(item => {
+                    if (!item.status) {
+                        // Show checkbox for missing attendance
+                        return {
+                            title: '<input type="checkbox" class="attendance-checkbox" data-date="' + item.date + '"> Mark Attendance',
+                            start: item.date,
+                            allDay: true
+                        };
+                    } else {
+                        // Show normal event for present/absent days
+                        return {
+                            title: item.status,
+                            start: item.date,
+                            backgroundColor: item.status === "Present" ? "green" : "red",
+                            textColor: "#fff"
+                        };
+                    }
+                });
+
+                window.calendar.addEventSource(events);
+                window.calendar.render();
+            },
+            error: function(xhr) {
+                console.log('Error:', xhr.responseText);
+            }
+        });
+    }
+</script>
+
 
 
     <div class="page-content">
@@ -99,19 +241,24 @@
                                                     {{ $attendance->status ?? 'N/A' }}
                                                 </td>
                                                 <td>
-                                                    {{ $attendance ? $attendance->created_at->format('H:i') : 'N/A' }}
+                                                    {{ $attendance ? $attendance->checked_in : 'N/A' }}
                                                 </td>
                                                 <td>
-                                                    {{ $attendance ? $attendance->updated_at->format('H:i') : 'N/A' }}
+                                                    {{ $attendance ? $attendance->checked_out : 'N/A' }}
                                                 </td>
                                                 <td>
-                                                    {{ $attendance ? $attendance->created_at->diffInMinutes($attendance->updated_at) : 'N/A' }}
+                                                    {{ $attendance ? $attendance->duration .' hours': 'N/A' }}
                                                 </td>
                                                 <td>
+                                                   <button type="button" class="btn btn-primary" data-toggle="modal"
+                                                        data-target="#attandanceModalmark"
+                                                        onclick="markAttendanceModal12({{ json_encode($emp) }},'{{ $disableCheckIn }}', '{{ $disableCheckOut }}','{{ @$attendance->attendance_status }}')">
+                                                        Mark
+                                                    </button>
                                                     <button type="button" class="btn btn-primary" data-toggle="modal"
                                                         data-target="#attandanceModal"
                                                         onclick="markAttendanceModal({{ json_encode($emp) }},'{{ $disableCheckIn }}', '{{ $disableCheckOut }}','{{ @$attendance->attendance_status }}')">
-                                                        Mark
+                                                        View
                                                     </button>
                                                 </td>
                                             </tr>
@@ -121,8 +268,8 @@
                                     </tbody>
                                 </table>
                                 {!! Form::close() !!}
-                                <!-- Modal -->
-                                <div class="modal fade" id="attandanceModal" tabindex="-1"
+                                  <!-- Modal Mark-->
+                                  <div class="modal fade" id="attandanceModalmark" tabindex="-1"
                                     aria-labelledby="attandanceModalLabel" aria-hidden="true">
                                     <div class="modal-dialog">
                                         <div class="modal-content">
@@ -133,14 +280,20 @@
                                                 </button>
                                             </div>
                                             <div class="modal-body">
-                                                {{-- <form action="#" method="POST"> --}}
                                                 @csrf
                                                 <div class="row">
                                                     <div class="col-md-12">
                                                         <div class="form-group">
+                                                            <label for="attendance_date">Date</label>
+                                                            <input type="date" class="form-control" name="attendance_date" id="attendance_date" required>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-md-12">
+                                                        <div class="form-group">
                                                             <label for="attendance_status">Status</label>
-                                                            <select class="form-control" name="attendance_status"
-                                                                id="attendance_status" onchange="checkAttendanceStatus()">
+                                                            <select class="form-control" name="attendance_status" id="attendance_status" onchange="checkAttendanceStatus()">
                                                                 <option value="Present">Present</option>
                                                                 <option value="Absent">Absent</option>
                                                                 <option value="Leave">Leave</option>
@@ -151,26 +304,40 @@
                                                 <div class="row">
                                                     <div class="col-md-6">
                                                         <div class="form-group">
-                                                            <label for="checkInBox">Mark Check In</label>
-                                                            <input type="checkbox" class="attendanceBox" id="checkInBox"
-                                                                class="ml-5" value="checkIn">
+                                                            <label for="checkInTime">Check In Time</label>
+                                                            <input type="time" class="form-control" name="check_in_time" id="checkInTime">
                                                         </div>
                                                     </div>
                                                     <div class="col-md-6">
                                                         <div class="form-group">
-                                                            <label for="checkOutBox">Mark Check Out</label>
-                                                            <input type="checkbox" class="attendanceBox" id="checkOutBox"
-                                                                class="ml-5" value="checkOut">
+                                                            <label for="checkOutTime">Check Out Time</label>
+                                                            <input type="time" class="form-control" name="check_out_time" id="checkOutTime">
                                                         </div>
                                                     </div>
                                                 </div>
                                                 <div class="row">
                                                     <div class="col-md-12">
-                                                        <button class="btn btn-primary"
-                                                            onclick="MarkCheckInCheckOut()">Submit</button>
+                                                        <button class="btn btn-primary" onclick="MarkCheckInCheckOut()">Submit</button>
                                                     </div>
                                                 </div>
-                                                {{-- </form> --}}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                              
+                                <!-- Modalview -->
+                                <div class="modal fade" id="attandanceModal" tabindex="-1" aria-labelledby="attandanceModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog modal-xl ">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="attandanceModalLabel">Add Attendance</h5>
+                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div id="calendar"></div>
                                             </div>
                                         </div>
                                     </div>
@@ -186,6 +353,26 @@
     </div>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
+    $(document).ready(function() {
+        // Ensure the modal is properly initialized
+        $(document).on('shown.bs.modal', '#attandanceModal, #attandanceModalmark', function () {
+            console.log("Modal Opened: " + $(this).attr('id')); // Debugging log
+        });
+
+        // Reload the page when any modal is closed
+        $(document).on('hidden.bs.modal', function (event) {
+            var modalId = $(event.target).attr('id'); 
+            if (modalId === "attandanceModal" || modalId === "attandanceModalmark") {
+                console.log("Modal Closed: " + modalId); // Debugging log
+                location.reload();
+            }
+        });
+    });
+</script>
+
+
+
+    <script>
         function checkAttendanceStatus() {
             let status = $('#attendance_status option:selected').val();
             if (status == 'Absent' || status == 'Leave') {
@@ -198,7 +385,10 @@
         }
         let selectedRow = null;
 
-        function markAttendanceModal(data, disableCheckIn, disableCheckOut, attandence_status) {
+
+
+
+        function markAttendanceModal12(data, disableCheckIn, disableCheckOut, attandence_status) {
             console.log(data, attandence_status);
 
             selectedRow = data;
@@ -269,90 +459,59 @@
         updateDateTime();
     </script>
     <script>
-        function MarkCheckInCheckOut() {
-            let checkType = $('.attendanceBox:checked').val();
-            if (!checkType.trim()) {
-                alert('Please Select Checkout Type');
-                return false;
+       function MarkCheckInCheckOut() {
+    let attendanceDate = $('#attendance_date').val();
+    let checkInTime = $('#checkInTime').val();
+    let checkOutTime = $('#checkOutTime').val();
+    let attendanceStatus = $('#attendance_status option:selected').val();
+
+    if (!attendanceDate.trim()) {
+        alert('Please select an attendance date.');
+        return false;
+    }
+
+    if (!attendanceStatus.trim()) {
+        alert('Please select an attendance status.');
+        return false;
+    }
+
+    const empId = selectedRow.id;
+    const designationId = selectedRow.designation_id;
+    const departmentId = selectedRow.department_id;
+    const orgId = selectedRow.org_id;
+
+    console.log(empId, designationId, departmentId, orgId, attendanceDate, checkInTime, checkOutTime, attendanceStatus);
+
+    $.ajax({
+        url: "{{ route('hrm.attendances.store') }}", // Laravel route
+        type: "POST",
+        data: {
+            _token: "{{ csrf_token() }}", // CSRF token
+            employee_id: empId,
+            designation_id: designationId,
+            department_id: departmentId,
+            org_id: orgId,
+            attendance_date: attendanceDate,
+            check_in_time: checkInTime,
+            check_out_time: checkOutTime,
+            attendance_status: attendanceStatus
+        },
+        success: function(response) {
+            console.log(response);
+
+            if (response && response.message) {
+                alert(response.message);
             }
-            const empId = selectedRow.id;
-            const designationId = selectedRow.designation_id;
-            const departmentId = selectedRow.department_id;
-            const orgId = selectedRow.org_id;
-            const type = checkType;
 
-            console.log(empId, designationId, departmentId, orgId, type);
-
-            $.ajax({
-                url: "{{ route('hrm.attendances.store') }}", // Laravel route
-                type: "POST",
-                data: {
-                    _token: "{{ csrf_token() }}", // CSRF token
-                    employee_id: empId,
-                    designation_id: designationId,
-                    department_id: departmentId,
-                    org_id: orgId,
-                    type: type,
-                    attendance_status: $('#attendance_status option:selected').val()
-                },
-                success: function(response) {
-                    console.log(response);
-
-                    if (response && response.message) {
-                        // Show the message from the response in the alert
-                        alert(response.message);
-                    }
-                    //alert('Attendance marked successfully!');
-                    // Disable the checkbox after marking attendance
-                    $(`input[data-emp-id='${empId}'][name='${type}']`).prop('disabled', true);
-                    $('#attendanceModal').modal('hide');
-
-                    // Reload the window
-                    location.reload();
-                },
-                error: function(xhr) {
-                    console.error(xhr.responseText);
-                    alert('An error occurred while marking attendance.');
-                }
-            });
+            $('#attandanceModalmark').modal('hide'); // Close modal
+            location.reload(); // Reload the page to update the data
+        },
+        error: function(xhr) {
+            console.error(xhr.responseText);
+            alert('An error occurred while marking attendance.');
         }
+    });
+}
 
-        $(document).on('change', '.checkOut', function() {
-            if ($(this).is(':checked')) {
-                // Get the data attributes
-                const empId = $(this).data('emp-id');
-                const designationId = $(this).data('designation-id');
-                const departmentId = $(this).data('department-id');
-                const orgId = $(this).data('org-id');
-                const type = $(this).attr('name'); // Check-In or Check-Out
-                //  alert(type);
-                // Send AJAX request
-                $.ajax({
-                    url: "{{ route('hrm.attendances.store') }}", // Laravel route
-                    type: "POST",
-                    data: {
-                        _token: "{{ csrf_token() }}", // CSRF token
-                        employee_id: empId,
-                        designation_id: designationId,
-                        department_id: departmentId,
-                        org_id: orgId,
-                        type: type // Check-In or Check-Out
-                    },
-                    success: function(response) {
-                        if (response && response.message) {
-                            // Show the message from the response in the alert
-                            alert(response.message);
-                        }
-                        //alert('Attendance marked successfully!');
-                        // Disable the checkbox after marking attendance
-                        $(`input[data-emp-id='${empId}'][name='${type}']`).prop('disabled', true);
-                    },
-                    error: function(xhr) {
-                        console.error(xhr.responseText);
-                        alert('An error occurred while marking attendance.');
-                    }
-                });
-            }
-        });
     </script>
 @endsection

@@ -334,6 +334,30 @@ class AttendanceController extends Controller
         return view('hrm.attendances.daily', compact('datas', 'departments', 'employee', 'noDataMessage'));
     }
 
+    public function get_emp_attendance(Request $request) {
+        $id = $request->id;
+    
+        $datas = Attendance::select(
+            'attendances.id',
+            'attendances.date',
+            'attendances.status',
+            'attendances.duration'
+        )
+        ->where('attendances.employee_id', '=', $id)
+        ->get()
+        ->map(function ($item) {
+            return [
+                'date' => \Carbon\Carbon::parse($item->date)->toDateString(), // Converts to YYYY-MM-DD
+                'status' => $item->status
+            ];
+        });
+    
+        return response()->json($datas);
+    }
+    
+    
+
+
     public function create(Request $request)
     {
         $user = Auth::user('id', 'name');
@@ -401,18 +425,18 @@ class AttendanceController extends Controller
             'designation_id' => 'required|integer',
             'department_id' => 'required|integer',
             'org_id' => 'required|integer',
-            'attendance_status' => 'required',
-            'type' => 'required|string|in:checkIn,checkOut', // Ensures only 'checkIn' or 'checkOut'
+            'attendance_date' => 'required|date',
+            'check_in_time' => 'nullable|date_format:H:i',
+            'check_out_time' => 'nullable|date_format:H:i|after_or_equal:check_in_time',
+            'attendance_status' => 'required|string',
         ]);
-
-        // Retrieve today's attendance for the employee
+    
+        // Retrieve attendance for the selected date
         $attendance = Attendance::where('employee_id', $validatedData['employee_id'])
-            ->whereDate('date', now()->toDateString()) // Check for the current date
+            ->whereDate('date', $validatedData['attendance_date'])
             ->first();
-
-
-
-        // If attendance for today doesn't exist, create a new record
+    
+        // If attendance for selected date doesn't exist, create a new record
         if (!$attendance) {
             $attendance = new Attendance();
             $attendance->organization_id = $validatedData['org_id'];
@@ -420,55 +444,36 @@ class AttendanceController extends Controller
             $attendance->department_id = $validatedData['department_id'];
             $attendance->designation_id = $validatedData['designation_id'];
             $attendance->status = $validatedData['attendance_status'];
-            $attendance->date = now()->toDateString(); // Set today's date
+            $attendance->date = $validatedData['attendance_date']; // Set selected date
             $attendance->created_by = auth()->id(); // Optional: Logged-in user
-            //$attendance->status = 'P'; // Default status
-            // Default status
-
-
-            // Handle check-in or check-out logic
-            if ($validatedData['type'] === 'checkIn') {
-
-                $attendance->checked_in = now();
-                // Save or update the attendance record
-                $attendance->updated_by = auth()->id(); // Optional: Logged-in user
-                $attendance->save();
-
-                // Return a success response
-                return response()->json([
-                    'message' => 'Check-In marked successfully!',
-                    'attendance' => $attendance,
-                ], 200);
+        }
+    
+        // Update check-in time if provided
+        if (!empty($validatedData['check_in_time'])) {
+            $attendance->checked_in = $validatedData['attendance_date'] . ' ' . $validatedData['check_in_time'];
+        }
+    
+        // Update check-out time if provided
+        if (!empty($validatedData['check_out_time'])) {
+            $attendance->checked_out = $validatedData['attendance_date'] . ' ' . $validatedData['check_out_time'];
+    
+            // Calculate duration in hours with decimal precision
+            if ($attendance->checked_in) {
+                $checkIn = Carbon::parse($attendance->checked_in);
+                $checkOut = Carbon::parse($attendance->checked_out);
+                $attendance->duration = round($checkIn->diffInMinutes($checkOut) / 60, 2); // Duration in hours
             }
         }
-        if ($attendance) {
-            if ($validatedData['type'] === 'checkOut') {
-
-                $attendance->checked_out = now();
-
-                // Calculate duration if check-in exists
-                if ($attendance->checked_in) {
-                    $attendance->duration = now()->diffInMinutes($attendance->checked_in); // Duration in minutes
-                }
-                $attendance->updated_by = auth()->id(); // Optional: Logged-in user
-                $attendance->save();
-
-                // Return a success response
-                return response()->json([
-                    'message' => 'Check-Out marked successfully!',
-                    'attendance' => $attendance,
-                ], 200);
-            }else{
-                $attendance->status = $validatedData['attendance_status'];
-                $attendance->save();
-                return response()->json([
-                    'message' => 'Attendance Updated Successfully',
-                    'attendance' => $attendance,
-                ], 200);
-            }
-        }
-
+    
+        $attendance->updated_by = auth()->id(); // Optional: Logged-in user
+        $attendance->save();
+    
+        return response()->json([
+            'message' => 'Attendance record updated successfully!',
+            'attendance' => $attendance,
+        ], 200);
     }
+    
 
     public function bulk_attendance()
     {
