@@ -162,10 +162,17 @@
                         // Check if the <td> has any of the excluded classes
                         const hasExcludedClass = excludedClasses.some(className => cell.classList
                             .contains(className));
+                        let innerText = cell.innerText;
+                        if (!hasExcludedClass && !(innerText.includes('Present') || innerText.includes('absent'))) {
+                            const button = document.createElement('button');
+                            button.textContent = 'Mark';
+                            button.classList.add('btn',
+                            'btn-primary'); // You can add any bootstrap or custom classes here
 
-                        if (!hasExcludedClass) {
+                            // Append the button inside the <td>
+                            cell.appendChild(button);
                             // Add the event listener only if it doesn't have the excluded classes
-                            cell.addEventListener('click', function() {
+                            button.addEventListener('click', function() {
                                 // Your code to handle the click event
                                 console.log('Grid cell clicked:', );
                                 let clickedDate = cell.getAttribute('data-date');
