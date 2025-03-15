@@ -188,6 +188,7 @@ Route::group(['middleware' => ['auth'], 'prefix' => 'hrm', 'as' => 'hrm.'], func
     Route::get('/attendances/allreport', [AttendanceController::class, 'index'] )->name('attendances.index');
     Route::get('/attendances/daily', [AttendanceController::class, 'attendance_daily'] )->name('attendances.daily');
     Route::get('/attendances-bulk_attendance', [AttendanceController::class, 'bulk_attendance'] )->name('attendances.bulk_attendance');
+    Route::post('/attendances-export', [AttendanceController::class, 'exportAttendance'] )->name('attendances.export_attendance');
 
     Route::post('/attendances/store', [AttendanceController::class, 'store'])->name('attendances.store');
 
@@ -203,7 +204,7 @@ Route::group(['middleware' => ['auth'], 'prefix' => 'hrm', 'as' => 'hrm.'], func
     Route::get('/attendance_file_upload', [AttendanceController::class, 'attendance_file_upload'] )->name('attendance_file_upload');
     Route::post('/file_upload', [AttendanceController::class, 'file_upload'] )->name('file_upload');
     Route::get('/attendance_emp_status', [AttendanceController::class, 'attendance_emp_status'] )->name('attendance_emp_status');
-    
+
     Route::get('/get_emp_attendance/{id}', [AttendanceController::class, 'get_emp_attendance'] )->name('get_emp_attendance');
 
     Route::resource('services', ServiceController::class);

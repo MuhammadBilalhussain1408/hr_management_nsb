@@ -224,9 +224,9 @@ class LeaveAllocationController extends Controller
             return view('hrm.leave_report.report', compact('org','leave_types','employees','year','l_allocation'));
             // $fileName = $year . '_report' . '.xlsx';
             // return Excel::download(new LeaveReportExport(['year' => $year], ['org' => $org]), $fileName);
-        
+
         }
-   
+
     }
     public function leave_request_approver()
     {

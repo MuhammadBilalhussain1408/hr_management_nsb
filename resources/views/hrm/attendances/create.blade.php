@@ -163,11 +163,12 @@
                         const hasExcludedClass = excludedClasses.some(className => cell.classList
                             .contains(className));
                         let innerText = cell.innerText;
-                        if (!hasExcludedClass && !(innerText.includes('Present') || innerText.includes('absent'))) {
+                        if (!hasExcludedClass && !(innerText.includes('Present') || innerText.includes(
+                                'absent'))) {
                             const button = document.createElement('button');
                             button.textContent = 'Mark';
                             button.classList.add('btn',
-                            'btn-primary'); // You can add any bootstrap or custom classes here
+                                'btn-primary'); // You can add any bootstrap or custom classes here
 
                             // Append the button inside the <td>
                             cell.appendChild(button);
@@ -244,7 +245,9 @@
                                             class="btn btn-primary float-right">Mark Bulk Attendance</a>
                                     </div>
                                     <div class="col-md-6">
-
+                                        <button type="button" data-toggle="modal"
+                                                        data-target="#ExportModal"
+                                            class="btn btn-primary">Export Attendance</button>
                                     </div>
                                 </div>
                                 <table id="datatable" data-order='[[ 0, "asc" ]]' data-page-length='20'
@@ -388,6 +391,41 @@
                                             </div>
                                             <div class="modal-body">
                                                 <div id="calendar"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Modalview -->
+                                <div class="modal fade" id="ExportModal" tabindex="-1"
+                                    aria-labelledby="ExportModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog modal-xl ">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="ExportModalLabel">Export</h5>
+                                                <button type="button" class="close" data-dismiss="modal"
+                                                    aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <form action="{{route('hrm.attendances.export_attendance')}}" method="post">
+                                                    @csrf
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <label for="">From Date</label>
+                                                            <input type="date" class="form-control" placeholder="From Date" name="from_date" />
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <label for="">To Date</label>
+                                                            <input type="date" class="form-control" placeholder="To Date" name="to_date" />
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-md-12">
+                                                            <button class="btn btn-success mt-5">Export</button>
+                                                        </div>
+                                                    </div>
+                                                </form>
                                             </div>
                                         </div>
                                     </div>

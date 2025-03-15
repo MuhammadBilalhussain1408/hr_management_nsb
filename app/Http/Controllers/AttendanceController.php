@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\AttandanceExport;
 use Illuminate\Http\Request;
 use App\Models\Attendance;
 use App\Models\DayOff;
@@ -15,6 +16,7 @@ use Auth;
 use SoftDeletes;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 
 // set_time_limit(3600);
 
@@ -336,7 +338,7 @@ class AttendanceController extends Controller
 
     public function get_emp_attendance(Request $request) {
         $id = $request->id;
-    
+
         $datas = Attendance::select(
             'attendances.id',
             'attendances.date',
@@ -351,11 +353,11 @@ class AttendanceController extends Controller
                 'status' => $item->status
             ];
         });
-    
+
         return response()->json($datas);
     }
-    
-    
+
+
 
 
     public function create(Request $request)
@@ -430,12 +432,12 @@ class AttendanceController extends Controller
             'check_out_time' => 'nullable|date_format:H:i|after_or_equal:check_in_time',
             'attendance_status' => 'required|string',
         ]);
-    
+
         // Retrieve attendance for the selected date
         $attendance = Attendance::where('employee_id', $validatedData['employee_id'])
             ->whereDate('date', $validatedData['attendance_date'])
             ->first();
-    
+
         // If attendance for selected date doesn't exist, create a new record
         if (!$attendance) {
             $attendance = new Attendance();
@@ -447,16 +449,16 @@ class AttendanceController extends Controller
             $attendance->date = $validatedData['attendance_date']; // Set selected date
             $attendance->created_by = auth()->id(); // Optional: Logged-in user
         }
-    
+
         // Update check-in time if provided
         if (!empty($validatedData['check_in_time'])) {
             $attendance->checked_in = $validatedData['attendance_date'] . ' ' . $validatedData['check_in_time'];
         }
-    
+
         // Update check-out time if provided
         if (!empty($validatedData['check_out_time'])) {
             $attendance->checked_out = $validatedData['attendance_date'] . ' ' . $validatedData['check_out_time'];
-    
+
             // Calculate duration in hours with decimal precision
             if ($attendance->checked_in) {
                 $checkIn = Carbon::parse($attendance->checked_in);
@@ -464,16 +466,16 @@ class AttendanceController extends Controller
                 $attendance->duration = round($checkIn->diffInMinutes($checkOut) / 60, 2); // Duration in hours
             }
         }
-    
+
         $attendance->updated_by = auth()->id(); // Optional: Logged-in user
         $attendance->save();
-    
+
         return response()->json([
             'message' => 'Attendance record updated successfully!',
             'attendance' => $attendance,
         ], 200);
     }
-    
+
 
     public function bulk_attendance()
     {
@@ -511,6 +513,14 @@ class AttendanceController extends Controller
         // Pass the message to the view
         return view('hrm.attendances.addbulkattendance', compact('employees'));
         //return view ('hrm.attendances.addbulkattendance', compact('departments', 'orgs','emps'));
+
+    }
+    public function exportAttendance(Request $request)
+    {
+        // dd($request);
+        $fromDate = $request->query('from_date'); // Format: '2025-01-01'
+        $toDate = $request->query('to_date'); // Format: '2025-03-01'
+        return Excel::download(new AttandanceExport($fromDate, $toDate), 'Attendance.xlsx');
 
     }
 
