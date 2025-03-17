@@ -520,7 +520,8 @@ class AttendanceController extends Controller
         // dd($request);
         $fromDate = $request->query('from_date'); // Format: '2025-01-01'
         $toDate = $request->query('to_date'); // Format: '2025-03-01'
-        return Excel::download(new AttandanceExport($fromDate, $toDate), 'Attendance.xlsx');
+        $empId = request('emp_id');
+        return Excel::download(new AttandanceExport($fromDate, $toDate,$empId), 'Attendance.xlsx');
 
     }
 

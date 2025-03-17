@@ -10,12 +10,14 @@ class AttandanceExport implements FromCollection, WithHeadings
 {
     protected $from;
     protected $to;
+    protected $emp_id;
 
     // public $employee;
-    public function __construct($from, $to)
+    public function __construct($from, $to, $emp_id)
     {
         $this->from = $from;
         $this->to = $to;
+        $this->emp_id = $emp_id;
     }
     /**
      * @return \Illuminate\Support\Collection
@@ -27,6 +29,9 @@ class AttandanceExport implements FromCollection, WithHeadings
             ->with(['emp', 'designation', 'department'])  // Ensure you load the related models
             ->when($this->from && $this->to, function ($query) {
                 return $query->whereBetween('created_at', [$this->from, $this->to]);
+            })
+            ->when($this->emp_id, function ($query) {
+                return $query->where('employee_id', $this->emp_id);
             })
             ->get()
             ->map(function ($att) {

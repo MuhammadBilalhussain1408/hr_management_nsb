@@ -118,7 +118,7 @@
 
         function markAttendanceModal(data) {
             var id = data['id'];
-
+            $('#emp_id').val(id);
             $.ajax({
                 url: '/hrm/get_emp_attendance/' + id,
                 type: 'GET',
@@ -164,7 +164,7 @@
                             .contains(className));
                         let innerText = cell.innerText;
                         if (!hasExcludedClass && !(innerText.includes('Present') || innerText.includes(
-                                'absent'))) {
+                                'Absent') || innerText.includes('Leave'))) {
                             const button = document.createElement('button');
                             button.textContent = 'Mark';
                             button.classList.add('btn',
@@ -240,7 +240,7 @@
                                 {!! Form::open(['route' => 'hrm.attendances.store', 'method' => 'POST']) !!}
                                 <br>
                                 <div class="row">
-                                    <div class="col-md-6">
+                                    {{-- <div class="col-md-6">
                                         <a href="{{ route('hrm.attendances.bulk_attendance') }}"
                                             class="btn btn-primary float-right">Mark Bulk Attendance</a>
                                     </div>
@@ -248,7 +248,7 @@
                                         <button type="button" data-toggle="modal"
                                                         data-target="#ExportModal"
                                             class="btn btn-primary">Export Attendance</button>
-                                    </div>
+                                    </div> --}}
                                 </div>
                                 <table id="datatable" data-order='[[ 0, "asc" ]]' data-page-length='20'
                                     class="table table-striped table-bordered w-100">
@@ -383,7 +383,11 @@
                                     <div class="modal-dialog modal-xl ">
                                         <div class="modal-content">
                                             <div class="modal-header">
-                                                <h5 class="modal-title" id="attandanceModalLabel">Add Attendance</h5>
+                                                <h5 class="modal-title" id="attandanceModalLabel">Add Attendance
+                                                    <button type="button" data-toggle="modal" data-target="#ExportModal"
+                                                        class="btn btn-primary">Export Attendance</button>
+
+                                                </h5>
                                                 <button type="button" class="close" data-dismiss="modal"
                                                     aria-label="Close">
                                                     <span aria-hidden="true">&times;</span>
@@ -396,8 +400,8 @@
                                     </div>
                                 </div>
                                 <!-- Modalview -->
-                                <div class="modal fade" id="ExportModal" tabindex="-1"
-                                    aria-labelledby="ExportModalLabel" aria-hidden="true">
+                                <div class="modal fade" id="ExportModal" tabindex="-1" aria-labelledby="ExportModalLabel"
+                                    aria-hidden="true">
                                     <div class="modal-dialog modal-xl ">
                                         <div class="modal-content">
                                             <div class="modal-header">
@@ -408,17 +412,21 @@
                                                 </button>
                                             </div>
                                             <div class="modal-body">
-                                                <form action="{{route('hrm.attendances.export_attendance')}}" method="post">
+                                                <form action="{{ route('hrm.attendances.export_attendance') }}"
+                                                    method="post">
                                                     @csrf
                                                     <div class="row">
                                                         <div class="col-md-6">
                                                             <label for="">From Date</label>
-                                                            <input type="date" class="form-control" placeholder="From Date" name="from_date" />
+                                                            <input type="date" class="form-control"
+                                                                placeholder="From Date" name="from_date" />
                                                         </div>
                                                         <div class="col-md-6">
                                                             <label for="">To Date</label>
-                                                            <input type="date" class="form-control" placeholder="To Date" name="to_date" />
+                                                            <input type="date" class="form-control" placeholder="To Date"
+                                                                name="to_date" />
                                                         </div>
+                                                        <input type="hidden" id="emp_id" name="emp_id">
                                                     </div>
                                                     <div class="row">
                                                         <div class="col-md-12">
