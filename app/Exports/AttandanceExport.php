@@ -25,7 +25,7 @@ class AttandanceExport implements FromCollection, WithHeadings
     public function collection()
     {
         // Load users with their posts
-        return Attendance::select('employee_id', 'checked_in', 'date', 'checked_out', 'designation_id', 'department_id', 'attendance_status')
+        return Attendance::select('employee_id', 'checked_in', 'date', 'checked_out', 'designation_id', 'department_id', 'status')
             ->with(['emp', 'designation', 'department'])  // Ensure you load the related models
             ->when($this->from && $this->to, function ($query) {
                 return $query->whereBetween('created_at', [$this->from, $this->to]);
@@ -40,7 +40,7 @@ class AttandanceExport implements FromCollection, WithHeadings
                     'date' => $att->date,  // Correct field name: 'date' is fine
                     'checked_in' => $att->checked_in,
                     'checked_out' => $att->checked_out,
-                    'attendance_status' => $att->attendance_status,
+                    'status' => $att->attendance_status,
                     'designation' => $att->designation ? $att->designation->name : null,  // Ensure designation exists
                     'department' => $att->department ? $att->department->name : null,  // Ensure department exists
                 ];

@@ -298,12 +298,12 @@
                                                 <td>
                                                     <button type="button" class="btn btn-primary" data-toggle="modal"
                                                         data-target="#attandanceModalmark"
-                                                        onclick="markAttendanceModal12({{ json_encode($emp) }},'{{ $disableCheckIn }}', '{{ $disableCheckOut }}','{{ @$attendance->attendance_status }}')">
+                                                        onclick="markAttendanceModal12({{ json_encode($emp) }},'{{ $disableCheckIn }}', '{{ $disableCheckOut }}','{{ @$attendance->status }}')">
                                                         Mark
                                                     </button>
                                                     <button type="button" class="btn btn-primary" data-toggle="modal"
                                                         data-target="#attandanceModal"
-                                                        onclick="markAttendanceModal12({{ json_encode($emp) }},'{{ $disableCheckIn }}', '{{ $disableCheckOut }}','{{ @$attendance->attendance_status }}'), markAttendanceModal({{ json_encode($emp) }},'{{ $disableCheckIn }}', '{{ $disableCheckOut }}','{{ @$attendance->attendance_status }}')">
+                                                        onclick="markAttendanceModal12({{ json_encode($emp) }},'{{ $disableCheckIn }}', '{{ $disableCheckOut }}','{{ @$attendance->status }}'), markAttendanceModal({{ json_encode($emp) }},'{{ $disableCheckIn }}', '{{ $disableCheckOut }}','{{ @$attendance->status }}')">
                                                         View
                                                     </button>
                                                 </td>
