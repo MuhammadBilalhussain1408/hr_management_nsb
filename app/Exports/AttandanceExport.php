@@ -43,7 +43,7 @@ class AttandanceExport implements FromCollection, WithHeadings
                     'attendance_status' => $att->attendance_status,
                     'designation' => $att->designation ? $att->designation->name : null,  // Ensure designation exists
                     'department' => $att->department ? $att->department->name : null,  // Ensure department exists
-                    'department' => $att->duration,  // Ensure department exists
+                    'duration' => $att->duration,  // Ensure department exists
                 ];
             });
     }
