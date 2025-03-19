@@ -27,12 +27,8 @@ class AttandanceExport implements FromCollection, WithHeadings
         // Load users with their posts
         return Attendance::select('employee_id', 'checked_in', 'date', 'checked_out', 'designation_id', 'department_id', 'status','duration')
             ->with(['emp', 'designation', 'department'])  // Ensure you load the related models
-            ->when($this->from && $this->to, function ($query) {
-                return $query->whereBetween('created_at', [$this->from, $this->to]);
-            })
-            ->when($this->emp_id, function ($query) {
-                return $query->where('employee_id', $this->emp_id);
-            })
+            ->whereBetween('created_at', [$this->from, $this->to])
+            ->where('employee_id', $this->emp_id)
             ->get()
             ->map(function ($att) {
                 return [
