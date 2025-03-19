@@ -40,7 +40,7 @@ class AttandanceExport implements FromCollection, WithHeadings
                     'date' => $att->date,  // Correct field name: 'date' is fine
                     'checked_in' => $att->checked_in,
                     'checked_out' => $att->checked_out,
-                    'attendance_status' => $att->attendance_status,
+                    'status' => $att->status,
                     'designation' => $att->designation ? $att->designation->name : null,  // Ensure designation exists
                     'department' => $att->department ? $att->department->name : null,  // Ensure department exists
                     'duration' => $att->duration,  // Ensure department exists
