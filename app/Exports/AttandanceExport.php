@@ -25,7 +25,7 @@ class AttandanceExport implements FromCollection, WithHeadings
     public function collection()
     {
         // Load users with their posts
-        return Attendance::select('employee_id', 'checked_in', 'date', 'checked_out', 'designation_id', 'department_id', 'status')
+        return Attendance::select('employee_id', 'checked_in', 'date', 'checked_out', 'designation_id', 'department_id', 'status','duration')
             ->with(['emp', 'designation', 'department'])  // Ensure you load the related models
             ->when($this->from && $this->to, function ($query) {
                 return $query->whereBetween('created_at', [$this->from, $this->to]);
@@ -40,9 +40,10 @@ class AttandanceExport implements FromCollection, WithHeadings
                     'date' => $att->date,  // Correct field name: 'date' is fine
                     'checked_in' => $att->checked_in,
                     'checked_out' => $att->checked_out,
-                    'status' => $att->attendance_status,
+                    'status' => $att->status,
                     'designation' => $att->designation ? $att->designation->name : null,  // Ensure designation exists
                     'department' => $att->department ? $att->department->name : null,  // Ensure department exists
+                    'duration' => $att->duration,  // Ensure department exists
                 ];
             });
     }
@@ -53,9 +54,10 @@ class AttandanceExport implements FromCollection, WithHeadings
             'Date',    // Custom heading for 'email'
             'Checked Inn',  // Custom heading for 'created_at'
             'Checked Out',       // Custom heading for 'post_title'
-            'Attendance Status',       // Custom heading for 'post_title'
+            'Status',       // Custom heading for 'post_title'
             'Designation',       // Custom heading for 'post_title'
             'Department',       // Custom heading for 'post_title'
+            'Duration',       // Custom heading for 'post_title'
         ];
     }
 }
