@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Models\Attendance;
+use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 
@@ -28,7 +29,10 @@ class AttandanceExport implements FromCollection, WithHeadings
         return Attendance::select('employee_id', 'checked_in', 'date', 'checked_out', 'designation_id', 'department_id', 'status','duration')
             ->with(['emp', 'designation', 'department'])  // Ensure you load the related models
             ->when($this->from && $this->to, function ($query) {
-                return $query->whereBetween('date', [$this->from, $this->to]);
+                return $query->whereBetween('date', [
+                    Carbon::parse($this->from)->format('Y-m-d'),
+                    Carbon::parse($this->to)->format('Y-m-d')
+                ]);
             })
             ->when($this->emp_id, function ($query) {
                 return $query->where('employee_id', $this->emp_id);
