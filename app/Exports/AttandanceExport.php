@@ -16,8 +16,8 @@ class AttandanceExport implements FromCollection, WithHeadings
     // public $employee;
     public function __construct($from, $to, $emp_id)
     {
-        $this->from = $from;
-        $this->to = $to;
+        $this->from = Carbon::parse($from)->format('Y-m-d');
+        $this->to = Carbon::parse($to)->format('Y-m-d');
         $this->emp_id = $emp_id;
     }
     /**
@@ -25,18 +25,14 @@ class AttandanceExport implements FromCollection, WithHeadings
      */
     public function collection()
     {
+        $from = $this->from;
+        $to = $this->to;
         // Load users with their posts
-        return Attendance::select('employee_id', 'checked_in', 'date', 'checked_out', 'designation_id', 'department_id', 'status','duration')
+        return Attendance::select('employee_id', 'checked_in', 'date', 'checked_out', 'designation_id', 'department_id', 'status', 'duration')
             ->with(['emp', 'designation', 'department'])  // Ensure you load the related models
-            ->when($this->from && $this->to, function ($query) {
-                return $query->whereBetween('date', [
-                    Carbon::parse($this->from)->format('Y-m-d'),
-                    Carbon::parse($this->to)->format('Y-m-d')
-                ]);
-            })
-            ->when($this->emp_id, function ($query) {
-                return $query->where('employee_id', $this->emp_id);
-            })
+            ->where('date', '>=', $from)
+            ->where('date', '<=', $to)
+            ->where('employee_id', $this->emp_id)
             ->get()
             ->map(function ($att) {
                 return [

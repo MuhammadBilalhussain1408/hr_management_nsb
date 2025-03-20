@@ -518,9 +518,11 @@ class AttendanceController extends Controller
     public function exportAttendance(Request $request)
     {
         // dd($request);
-        $fromDate = $request->query('from_date'); // Format: '2025-01-01'
-        $toDate = $request->query('to_date'); // Format: '2025-03-01'
-        $empId = request('emp_id');
+        DB::enableQueryLog();
+        $fromDate = $request->from_date; // Format: '2025-01-01'
+        $toDate = $request->to_date; // Format: '2025-03-01'
+        $empId = $request->emp_id;
+
         return Excel::download(new AttandanceExport($fromDate, $toDate,$empId), 'Attendance.xlsx');
 
     }
